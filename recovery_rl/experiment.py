@@ -74,8 +74,8 @@ class Experiment:
         self.viol_and_no_recovery = 0
         # Get demos
         self.task_demos = self.exp_cfg.task_demos
-        self.constraint_demo_data, self.task_demo_data, self.obs_seqs, self.ac_seqs, self.constraint_seqs = self.get_offline_data(
-        )
+        self.constraint_demo_data, self.task_demo_data, self.obs_seqs, \
+                self.ac_seqs, self.constraint_seqs = self.get_offline_data()
 
         # Get multiplier schedule for RSPO
         if self.exp_cfg.nu_schedule:
@@ -181,72 +181,17 @@ class Experiment:
         ac_seqs = []
         constraint_seqs = []
         if not self.exp_cfg.task_demos:
-            if self.exp_cfg.env_name == 'reacher':
-                constraint_demo_data = pickle.load(
-                    open(
-                        osp.join("demos", "dvrk_reach",
-                                 "constraint_demos.pkl"), "rb"))
-                if self.exp_cfg.cnn:
-                    constraint_demo_data = constraint_demo_data['images']
-                else:
-                    constraint_demo_data = constraint_demo_data['lowdim']
-            elif 'maze' in self.exp_cfg.env_name:
-                # Maze
-                if self.exp_cfg.env_name == 'maze':
-                    constraint_demo_data = pickle.load(
-                        open(
-                            osp.join("demos", self.exp_cfg.env_name,
-                                     "constraint_demos.pkl"), "rb"))
-                else:
-                    # Image Maze
-                    demo_data = pickle.load(
-                        open(
-                            osp.join("demos", self.exp_cfg.env_name,
-                                     "demos.pkl"), "rb"))
-                    constraint_demo_data = demo_data['constraint_demo_data']
-                    obs_seqs = demo_data['obs_seqs']
-                    ac_seqs = demo_data['ac_seqs']
-                    constraint_seqs = demo_data['constraint_seqs']
-            elif 'extraction' in self.exp_cfg.env_name:
-                # Object Extraction, Object Extraction (Dynamic Obstacle)
-                folder_name = self.exp_cfg.env_name.split('_env')[0]
-                constraint_demo_data = pickle.load(
-                    open(
-                        osp.join("demos", folder_name, "constraint_demos.pkl"),
-                        "rb"))
-            else:
-                # Navigation 1 and 2
-                constraint_demo_data = self.env.transition_function(
-                    self.exp_cfg.num_unsafe_transitions)
+            # Navigation 1 and 2
+            constraint_demo_data = self.env.transition_function(
+                self.env, self.exp_cfg.num_unsafe_transitions)
         else:
-            if 'extraction' in self.exp_cfg.env_name:
-                folder_name = self.exp_cfg.env_name.split('_env')[0]
-                task_demo_data = pickle.load(
-                    open(osp.join("demos", folder_name, "task_demos.pkl"),
-                         "rb"))
-                constraint_demo_data = pickle.load(
-                    open(
-                        osp.join("demos", folder_name, "constraint_demos.pkl"),
-                        "rb"))
-                # Get all violations in front to get as many violations as
-                # possible
-                constraint_demo_data_list_safe = []
-                constraint_demo_data_list_viol = []
-                for i in range(len(constraint_demo_data)):
-                    if constraint_demo_data[i][2] == 1:
-                        constraint_demo_data_list_viol.append(
-                            constraint_demo_data[i])
-                    else:
-                        constraint_demo_data_list_safe.append(
-                            constraint_demo_data[i])
-
-                constraint_demo_data = constraint_demo_data_list_viol[:int(
-                    0.5 * self.exp_cfg.num_unsafe_transitions
-                )] + constraint_demo_data_list_safe
-            else:
-                constraint_demo_data, task_demo_data = self.env.transition_function(
-                    self.exp_cfg.num_unsafe_transitions, task_demos=self.exp_cfg.task_demos)
-        return constraint_demo_data, task_demo_data, obs_seqs, ac_seqs, constraint_seqs
+            constraint_demo_data, task_demo_data = \
+                    self.env.transition_function(
+                            self.env,
+                            self.exp_cfg.num_unsafe_transitions,
+                            task_demos=self.exp_cfg.task_demos)
+        return constraint_demo_data, task_demo_data, obs_seqs, ac_seqs, \
+                constraint_seqs
 
     def train_MB_recovery(self, states, actions, next_states=None, epochs=50):
         if next_states is not None:
@@ -278,7 +223,8 @@ class Experiment:
                 self.recovery_memory.push(*transition)
                 self.num_constraint_violations += int(transition[2])
                 self.num_unsafe_transitions += 1
-                if self.num_unsafe_transitions == self.exp_cfg.num_unsafe_transitions:
+                if self.num_unsafe_transitions == \
+                        self.exp_cfg.num_unsafe_transitions:
                     break
             print("Number of Constraint Transitions: ",
                   self.num_unsafe_transitions)
@@ -316,7 +262,8 @@ class Experiment:
                 self.recovery_memory.push(*transition)
                 self.num_constraint_violations += int(transition[2])
                 self.num_unsafe_transitions += 1
-                if self.num_unsafe_transitions == self.exp_cfg.num_unsafe_transitions:
+                if self.num_unsafe_transitions == \
+                        self.exp_cfg.num_unsafe_transitions:
                     break
             print("Number of Constraint Transitions: ",
                   self.num_unsafe_transitions)
@@ -428,7 +375,7 @@ class Experiment:
             episode_reward += reward
             self.total_numsteps += 1
 
-            if info['constraint']:
+            if info['violation']:
                 reward -= self.exp_cfg.constraint_reward_penalty
 
             mask = float(not done)
@@ -442,23 +389,24 @@ class Experiment:
 
             if self.exp_cfg.use_recovery or self.exp_cfg.DGD_constraints or self.exp_cfg.RCPO:
                 self.recovery_memory.push(state, real_action,
-                                          info['constraint'], next_state, mask)
+                                          info['violation'], next_state, mask)
                 if recovery_used and self.exp_cfg.add_both_transitions:
                     self.memory.push(state, real_action, reward, next_state,
                                      mask)
             state = next_state
             ep_states.append(state)
             ep_actions.append(real_action)
-            ep_constraints.append([info['constraint']])
+            ep_constraints.append([info['violation']])
 
         # Get success/violation stats
-        if info['constraint']:
+        if info['violation']:
             self.num_viols += 1
             if info['recovery']:
                 self.viol_and_recovery += 1
             else:
                 self.viol_and_no_recovery += 1
-        self.num_successes += int(info['success'])
+        #self.num_successes += int(info['success'])
+        self.num_successes += done
 
         # Update recovery policy using online data
         if self.exp_cfg.use_recovery and not self.exp_cfg.disable_online_updates:
