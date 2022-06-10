@@ -37,20 +37,28 @@ For installation, run `. install.sh`. This will install all python and system wi
 We include command to run experiments for RCPO and LR on 4 MuJoCo environments:
 
 ###  AntNoBonusEnv
-`python3 -m rrl_main --cuda --RCPO --env-name ant_no_bonus --gamma_safe 0.6 --eps_safe 0.2 --lambda 1 --seed 1`
-`python3 -m rrl_main --cuda --DGD_constraints --env-name ant_no_bonus --gamma_safe 0.6 --eps_safe 0.2  --nu 1 --update_nu --seed 1`
+```
+python3 -m rrl_main --cuda --RCPO --env-name ant_no_bonus --gamma_safe 0.6 --eps_safe 0.2 --lambda 1 --seed 1
+python3 -m rrl_main --cuda --DGD_constraints --env-name ant_no_bonus --gamma_safe 0.6 --eps_safe 0.2  --nu 1 --update_nu --seed 1
+```
 
 ###  CheetahNoFlipEnv
-`python3 -m rrl_main --cuda --RCPO --env-name cheetah_no_flip --gamma_safe 0.5 --eps_safe 0.2 --lambda 10 --seed 1`
-`python3 -m rrl_main --cuda --DGD_constraints --env-name cheetah_no_flip --gamma_safe 0.5 --eps_safe 0.2  --nu 1000 --update_nu --seed 1`
+```
+python3 -m rrl_main --cuda --RCPO --env-name cheetah_no_flip --gamma_safe 0.5 --eps_safe 0.2 --lambda 10 --seed 1
+python3 -m rrl_main --cuda --DGD_constraints --env-name cheetah_no_flip --gamma_safe 0.5 --eps_safe 0.2  --nu 1000 --update_nu --seed 1
+```
 
 ###  HopperNoBonusEnv
-`python3 -m rrl_main --cuda --RCPO --env-name hopper_no_bonus --gamma_safe 0.6 --eps_safe 0.3 --lambda 10 --seed 1`
-`python3 -m rrl_main --cuda --DGD_constraints --env-name hopper_no_bonus --gamma_safe 0.6 --eps_safe 0.3  --nu 1000 --update_nu --seed 1`
+```
+python3 -m rrl_main --cuda --RCPO --env-name hopper_no_bonus --gamma_safe 0.6 --eps_safe 0.3 --lambda 10 --seed 1
+python3 -m rrl_main --cuda --DGD_constraints --env-name hopper_no_bonus --gamma_safe 0.6 --eps_safe 0.3  --nu 1000 --update_nu --seed 1
+```
 
 ###  HumanoidNoBonusEnv
-`python3 -m rrl_main --cuda --RCPO --env-name humanoid_no_bonus --gamma_safe 0.6 --eps_safe 0.4 --lambda 10 --seed 1`
-`python3 -m rrl_main --cuda --DGD_constraints --env-name humanoid_no_bonus --gamma_safe 0.6 --eps_safe 0.4  --nu 1 --update_nu --seed 1`
+```
+python3 -m rrl_main --cuda --RCPO --env-name humanoid_no_bonus --gamma_safe 0.6 --eps_safe 0.4 --lambda 10 --seed 1
+python3 -m rrl_main --cuda --DGD_constraints --env-name humanoid_no_bonus --gamma_safe 0.6 --eps_safe 0.4  --nu 1 --update_nu --seed 1
+```
 
 # Plotting Results
 ------------
