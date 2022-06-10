@@ -12,5 +12,5 @@ pip3 install torchvision==0.5.0
 #conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
 #pip3 install numpy --upgrade
 #pip3 install mujoco_py==1.50.1.68
-pip3 install 0.15.7
+pip3 install gym==0.15.7
 pip3 install mujoco_py==2.0.2.13
